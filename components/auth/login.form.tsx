@@ -1,18 +1,26 @@
 'use client'
 
 import * as z from 'zod'
+
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useState, useTransition } from 'react'
+
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form" 
-import { CardWrapper } from "./card.wrapper"
-import { loginSchema } from '@/schemas'
 import { Input } from '../ui/input'
 import { Button } from '../ui/button'
+
+import { CardWrapper } from "./card.wrapper"
+import { loginSchema } from '@/schemas'
 import { FormError } from '../form.error'
 import { FormSuccess } from '../form.success'
 import { Login } from '@/app/_actions/login'
 
 export function LoginForm(){
+  const [errorMessage, setErrorMessage] = useState<string | undefined>('')
+  const [successMessage, setSuccessMessage] = useState<string | undefined>('')
+  const [isPending, starTransition] = useTransition()
+
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -22,7 +30,19 @@ export function LoginForm(){
   })
 
   const onSubmit = (values: z.infer<typeof loginSchema>) => {
-    Login(values)
+    setErrorMessage("")
+    setSuccessMessage("")
+
+    starTransition(async () => {
+      const result = await Login(values)
+
+      if(result.error){
+        setErrorMessage(result.error)
+        return
+      }
+
+      setSuccessMessage(result.success)
+    })
   }
 
   return(
@@ -46,6 +66,7 @@ export function LoginForm(){
                   <FormControl>
                     <Input 
                       {...field}
+                      disabled={isPending}
                       placeholder='john.doe@example.com'
                       type='email'
                     />
@@ -65,6 +86,7 @@ export function LoginForm(){
                   <FormControl>
                     <Input 
                       {...field}
+                      disabled={isPending}
                       placeholder='******'
                       type='password'
                     />
@@ -74,9 +96,10 @@ export function LoginForm(){
               )}
             />
           </div>
-          <FormError message='' />
-          <FormSuccess message='' />
+          <FormError message={errorMessage} />
+          <FormSuccess message={successMessage} />
           <Button
+            disabled={isPending}
             type='submit'
             className='w-full'
           >
