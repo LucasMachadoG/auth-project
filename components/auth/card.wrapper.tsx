@@ -17,7 +17,7 @@ export function CardWrapper({ children, headerLabel, backButtonHref, backButtonL
   return(
     <Card className="w-[400px] shadow-md">
       <CardHeader>
-        <Header label="Welcome back" />
+        <Header label={headerLabel} />
       </CardHeader>
       <CardContent>
         {children}
