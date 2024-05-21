@@ -14,6 +14,22 @@ import { UserRole } from "@prisma/client"
  
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
+  pages: {
+    signIn: "/auth/login",
+    error: "/auth/error"
+  },
+  events: {
+    async linkAccount({ user }){
+      await prisma.user.update({
+        where: {
+          id: user.id
+        },
+        data: {
+          emailVerified: new Date()
+        }
+      })
+    }
+  },
   callbacks: {
     // async signIn({ user }){
     //   const existingUser = await getUserById(user.id as string)

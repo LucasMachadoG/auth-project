@@ -15,8 +15,13 @@ import { loginSchema } from '@/schemas'
 import { FormError } from '../form.error'
 import { FormSuccess } from '../form.success'
 import { Login } from '@/app/_actions/login'
+import { useSearchParams } from 'next/navigation'
+import { toast } from 'sonner'
 
 export function LoginForm(){
+  const searchParams = useSearchParams()
+  const urlError = searchParams.get("error") === "OAuthAccountNotLinked" ? "Email already in use." : ""
+
   const [errorMessage, setErrorMessage] = useState<string | undefined>('')
   const [successMessage, setSuccessMessage] = useState<string | undefined>('')
   const [isPending, starTransition] = useTransition()
@@ -36,12 +41,12 @@ export function LoginForm(){
     starTransition(async () => {
       const result = await Login(values)
 
-      if(result.error){
+      if(result?.error){
         setErrorMessage(result.error)
         return
       }
 
-      setSuccessMessage(result.success)
+      // setSuccessMessage(result.success)
     })
   }
 
@@ -96,7 +101,7 @@ export function LoginForm(){
               )}
             />
           </div>
-          <FormError message={errorMessage} />
+          <FormError message={errorMessage || urlError} />
           <FormSuccess message={successMessage} />
           <Button
             disabled={isPending}

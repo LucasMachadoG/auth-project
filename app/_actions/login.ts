@@ -23,6 +23,10 @@ export async function Login(values: z.infer<typeof loginSchema>){
       password,
       redirectTo: DEFAULT_LOGIN_REDIRECT
     })
+
+    return {
+      success: "Login successfully"
+    }
   }catch(error: any){
     if(error instanceof AuthError){
       switch (error.type){
