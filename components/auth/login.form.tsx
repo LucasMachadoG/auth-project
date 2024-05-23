@@ -16,7 +16,6 @@ import { FormError } from '../form.error'
 import { FormSuccess } from '../form.success'
 import { Login } from '@/app/_actions/login'
 import { useSearchParams } from 'next/navigation'
-import { toast } from 'sonner'
 
 export function LoginForm(){
   const searchParams = useSearchParams()
@@ -46,7 +45,7 @@ export function LoginForm(){
         return
       }
 
-      // setSuccessMessage(result.success)
+      setSuccessMessage(result.success)
     })
   }
 
