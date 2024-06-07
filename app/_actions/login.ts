@@ -1,5 +1,6 @@
 'use server'
 
+import { compare } from 'bcryptjs'
 import { loginSchema } from '@/schemas'
 import { prisma } from '@/lib/db'
 import * as z from 'zod'
@@ -26,8 +27,18 @@ export async function Login(values: z.infer<typeof loginSchema>){
   const existingUser = await getUserByEmail(email)
 
   if(!existingUser || !existingUser.email || !existingUser.password){
+    console.log("Aqui")
+
     return {
       error: "Email does not exist."
+    }
+  }
+
+  const isPasswordValid = await compare(password, existingUser.password)
+
+  if (!isPasswordValid) {
+    return {
+      error: "Invalid credentials."
     }
   }
 

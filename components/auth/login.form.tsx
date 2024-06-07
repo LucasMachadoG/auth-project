@@ -41,10 +41,6 @@ export function LoginForm(){
     setErrorMessage("")
     setSuccessMessage("")
 
-    console.log({
-      Values: values
-    })
-
     startTransition(async () => {
       const result = await Login(values)
 
