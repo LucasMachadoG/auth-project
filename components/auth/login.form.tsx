@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useState, useTransition } from 'react'
 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form" 
+import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot, } from "@/components/ui/input-otp"
 import { Input } from '../ui/input'
 import { Button } from '../ui/button'
 
@@ -24,13 +25,15 @@ export function LoginForm(){
 
   const [errorMessage, setErrorMessage] = useState<string | undefined>('')
   const [successMessage, setSuccessMessage] = useState<string | undefined>('')
-  const [isPending, starTransition] = useTransition()
+  const [isPending, startTransition] = useTransition()
+  const [showTwoFactor, setShowTwoFactor] = useState(false)
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
-      password: ""
+      password: "",
+      code: ""
     }
   })
 
@@ -38,15 +41,28 @@ export function LoginForm(){
     setErrorMessage("")
     setSuccessMessage("")
 
-    starTransition(async () => {
+    console.log({
+      Values: values
+    })
+
+    startTransition(async () => {
       const result = await Login(values)
 
       if(result?.error){
+        form.reset()
         setErrorMessage(result.error)
         return
       }
 
-      setSuccessMessage(result.success)
+      if(result.success){
+        form.reset()
+        setSuccessMessage(result.success)
+        return
+      }
+
+      if(result.twoFactor){
+        setShowTwoFactor(true)
+      }
     })
   }
 
@@ -60,49 +76,88 @@ export function LoginForm(){
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
           <div className='space-y-4'>
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Email
-                  </FormLabel>
-                  <FormControl>
-                    <Input 
-                      {...field}
-                      disabled={isPending}
-                      placeholder='john.doe@example.com'
-                      type='email'
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Password
-                  </FormLabel>
-                  <FormControl>
-                    <Input 
-                      {...field}
-                      disabled={isPending}
-                      placeholder='******'
-                      type='password'
-                    />
-                  </FormControl>
-                  <Button size={'sm'} variant={'link'} asChild className='px-0 font-normal'>
-                    <Link href={"/auth/reset"}>Forgot password?</Link>
-                  </Button>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {showTwoFactor && (
+              <div className='w-full flex justify-center'>
+                <FormField
+                  control={form.control}
+                  name="code"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Code
+                      </FormLabel>
+                      <FormControl>
+                        <InputOTP 
+                          {...field}
+                          maxLength={6}
+                        >
+                          <InputOTPGroup>
+                            <InputOTPSlot index={0} />
+                            <InputOTPSlot index={1} />
+                            <InputOTPSlot index={2} />
+                          </InputOTPGroup>
+                          <InputOTPSeparator />
+                          <InputOTPGroup>
+                            <InputOTPSlot index={3} />
+                            <InputOTPSlot index={4} />
+                            <InputOTPSlot index={5} />
+                          </InputOTPGroup>
+                        </InputOTP>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+               
+             </div>           
+            )}
+            {!showTwoFactor && (
+              <>
+                <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Email
+                    </FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field}
+                        disabled={isPending}
+                        placeholder='john.doe@example.com'
+                        type='email'
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Password
+                    </FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field}
+                        disabled={isPending}
+                        placeholder='******'
+                        type='password'
+                      />
+                    </FormControl>
+                    <Button size={'sm'} variant={'link'} asChild className='px-0 font-normal'>
+                      <Link href={"/auth/reset"}>Forgot password?</Link>
+                    </Button>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>)}
+            
           </div>
           <FormError message={errorMessage || urlError} />
           <FormSuccess message={successMessage} />
@@ -111,7 +166,7 @@ export function LoginForm(){
             type='submit'
             className='w-full'
           >
-            Login
+            {showTwoFactor ? "Confirm" : "Login"}
           </Button>
         </form>
       </Form>
