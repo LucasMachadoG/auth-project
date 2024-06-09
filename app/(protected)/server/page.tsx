@@ -1,5 +1,5 @@
 import UserInfo from "@/components/user.info"
-import currentUser from "@/lib/auth"
+import { currentUser } from "@/lib/auth"
 
 export default async function Sever(){
   const user = await currentUser()
