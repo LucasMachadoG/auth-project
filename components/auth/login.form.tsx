@@ -28,6 +28,8 @@ export function LoginForm(){
   const [isPending, startTransition] = useTransition()
   const [showTwoFactor, setShowTwoFactor] = useState(false)
 
+  const callbackUrl = searchParams.get("callbackUrl")
+
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -42,7 +44,7 @@ export function LoginForm(){
     setSuccessMessage("")
 
     startTransition(async () => {
-      const result = await Login(values)
+      const result = await Login(values, callbackUrl)
 
       if(result?.error){
         form.reset()
